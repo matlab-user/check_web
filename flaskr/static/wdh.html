@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+		<link rel="stylesheet" href="../static/html-att/bootstrap/dist/css/bootstrap.min.css">
+		<link rel="stylesheet" href="../static/html-att/css/font-awesome.min.css">
+		
+		<title>Hello, world!</title>
+		
+		<style>
+			.wdh-block {
+				height: 40vh;
+				margin-top: 8vh;
+			}
+			
+			.button_w {
+				width: 10vw;
+			}
+			
+			.bianju {
+				padding: 10px 20px;
+			}
+			
+			.res_show {
+				margin-top: 10px;
+				font-size: 1.1em;
+			}
+			
+			.goods_images img {
+				padding: 0;
+				border-width: 0;
+			}
+			
+			#t_info {
+				padding: 10px;
+			}
+						
+			.focus {
+				box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+				-webkit-box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+				-moz-box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+			}
+			
+			.img_hover{
+				transform: scale(1.04);
+				z-index: 3;
+			}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		<div class="container-fluid">
+			<div class="row wdh-block">
+				<div class="col-lg-4 offset-lg-2 bianju">
+					<h2>上传订单</h2>
+					</br>
+					<form id='order_form' method="post" enctype="multipart/form-data">
+						<input id='upload_file' type="file" name="file">
+						</br></br>
+					</form>
+					<button id='upload_and_save_order_file' class="button_w btn btn-primary">上 传</button>
+					<div id="order_res_show" class="res_show"></div>
+				</div>
+				<div class="col-lg-4 bianju">
+					<h2>下载生产计划</h2>
+					</br>
+					<input id="produce_plan_t" type="text" class="form-control" placeholder="例:20190524-20190602">
+					</br>
+					<a id='b_ppt' class='button_w btn btn-success' style='color:#fff'>下 载</a>
+				</div>
+			</div>
+			
+			<div class="row wdh-block">
+				<div class="col-lg-4 offset-lg-2 bianju">
+					<h2>添加产品（非果切类）</h2>
+					</br>
+					<input id="goods_info" type="text" class="form-control" placeholder="类型-产品名称-单位">
+					</br>
+					<button id='add_g1' class='button_w'>确 定</button>
+					<div id="add_g1_res_show" class="res_show"></div>
+				</div>
+				
+				<div class="col-lg-4 bianju">
+					<h2>添加产品（果切类）</h2>
+					</br>
+					<div class='form-inline'>
+						<input id="fc_name" type="text" class="form-control col-lg-6" style="margin-right:10px;" placeholder="果切名称">
+						<input id="fc_w_n" type="text" class="form-control col-lg-4" placeholder="例:100-2">
+					</div>
+					</br>
+					<!--<input id="fc_info" type="text" class="form-control" placeholder="原料1:出成率,原料2:出成率...">-->
+					<textarea id='fc_info' class="form-control" rows='12' placeholder="原料1:出成率,原料2:出成率..."></textarea>
+					</br>
+					<button id='add_fc' class='button_w'>确 定</button>
+					<div id="add_fc_res_show" class="res_show"></div>
+				</div>
+			</div>
+			
+			<div class="row wdh-block">
+				<div class="col-lg-4 offset-lg-2 bianju">
+					<h2>添加公司及联系人</h2>
+					</br>
+					<input id="com_info" type="text" class="form-control" placeholder="公司名称-联系人-手机号-公司开票名称">
+					</br>
+					<input id="com_addr" type="text" class="form-control" placeholder="省-市-区-地址">
+					</br>
+					<button id='add_com' class='button_w btn btn-success'>确 定</button>	
+					<div id="add_com_res_show" class="res_show"></div>
+				</div>
+			</div>
+							
+			<div class="row wdh-block">
+				<div class="col-lg-4 offset-lg-2 bianju">
+					<h2>下载物料单</h2>
+					</br>
+					<input id="m_t" type="text" class="form-control" placeholder="例:20190523-20190602">
+					</br>
+					<a id='b_mlist' class='button_w btn btn-success'>下 载</a>
+				</div>
+				
+				<div class="col-lg-4 bianju">
+					<h2>下载运输三联单</h2>
+					</br>
+					<input id="shipping_t" type="text" class="form-control" placeholder="例:20190523">
+					</br>
+					<a id='b_shipping' class='button_w btn btn-success'>下 载</a>
+				</div>
+			</div>
+			
+			<div class="row wdh-block">
+				<div class="col-lg-4 offset-lg-2 bianju">
+					<h2>下载产品清单及公司名称</h2>
+					</br>
+					<a id='b_download_goods' class='button_w btn btn-success'>下 载</a>
+				</div>
+				
+				<div class="col-lg-4 bianju">
+					<h2>修改订单</h2>
+					</br>
+					<form id='order_form_2' method="post" enctype="multipart/form-data">
+						<input id='upload_file_2' type="file" name="file">
+						</br></br>
+					</form>
+					<button id='add_new_order' class='button_w btn btn-primary'>新 增</button>
+					<button id='change_order' class='button_w btn btn-primary'>修 改</button>
+					<div id="order_res_show_2" class="res_show"></div>
+				</div>
+			</div>
+			
+		</div>	
+
+		<script src="../static/html-att/js/jquery-3.4.0.min.js"></script>
+		<script src="../static/html-att/js/popper-1.12.9/popper.min.js"></script>
+		<script src="../static/html-att/bootstrap/dist/js/bootstrap.min.js"></script>
+		
+		<script>
+			$( function() {
+				$('#upload_and_save_order_file').click( function( e ) {
+					$('#order_res_show').html( '' );
+					var formData = new FormData();
+					formData.append( 'file', $('#upload_file')[0].files[0] )
+					$.ajax( { url:'/upload', type: 'POST', data: formData,  processData: false, contentType: false,
+								success : function( res ) { 
+									$('#order_res_show').html( res );
+								}, 
+								error : function( res ) { 
+									$('#order_res_show').html( 'error' );
+								} 
+							} );
+				} );
+				
+				
+				$('#add_new_order').click( function( e ) {
+					$('#order_res_show_2').html( '' );
+					var formData = new FormData();
+					formData.append( 'file', $('#upload_file_2')[0].files[0] )
+					$.ajax( { url:'/add_new_order', type: 'POST', data: formData,  processData: false, contentType: false,
+								success : function( res ) { 
+									$('#order_res_show_2').html( res );
+								}, 
+								error : function( res ) { 
+									$('#order_res_show_2').html( 'error' );
+								} 
+							} );
+				} );
+				
+				
+				$('#change_order').click( function( e ) {
+					$('#order_res_show_2').html( '' );
+					var formData = new FormData();
+					formData.append( 'file', $('#upload_file_2')[0].files[0] )
+					$.ajax( { url:'/change_order', type: 'POST', data: formData,  processData: false, contentType: false,
+								success : function( res ) { 
+									$('#order_res_show_2').html( res );
+								}, 
+								error : function( res ) { 
+									$('#order_res_show_2').html( 'error' );
+								} 
+							} );
+				} );
+				
+				
+				$('#b_ppt').click( function( e ) {
+					var t_range = $('#produce_plan_t').val();
+					if( t_range=='' )
+						return false
+					
+					var url = '/get_produce_plan/' + escape( t_range );
+					$(this).attr( 'href', url );
+					return true;
+				} );
+				
+				
+				$('#b_download_goods').click( function( e ) {
+					var url = '/download_goods/';
+					$(this).attr( 'href', url );
+					return true;
+				} );
+				
+					
+				$('#add_g1').click( function( e ) {
+					$('#add_g1_res_show').html( '' );
+					var g_str = $('#goods_info').val();
+					if( g_str=='' )
+						return false
+						
+					var url = '/add_g1/' + g_str;
+					$.get( url, function( res ) {
+						$('#add_g1_res_show').html( res );
+					} );
+						
+				} ); 
+				
+				
+				$('#b_mlist').click( function( e ) {
+					var t_range = $('#m_t').val();
+					if( t_range=='' )
+						return false
+				
+					var url = '/get_mlist/' + escape( t_range );
+					$(this).attr( 'href', url );
+					return true;
+				} );
+				
+				
+				$('#b_shipping').click( function( e ) {
+					var t_range = $('#shipping_t').val();
+					if( t_range=='' )
+						return false
+				
+					var url = '/get_shipping/' + escape( t_range );
+					$(this).attr( 'href', url );
+					return true;
+				} );
+				
+				$('#add_fc').click( function( e ) {
+					$('#add_fc_res_show').html( '' );
+					var name = $('#fc_name').val();
+					var info = $('#fc_info').val();
+					var note = $('#fc_w_n').val();
+					
+					if( name=='' || info=='' || note=='' ) {
+						$('#add_fc_res_show').html( '请补充完整信息' );
+						return false
+					}
+					
+					var url = '/add_fruit_cut/' + name + '/' + info + '/' + note
+					$.get( url, function( res ) {  $('#add_fc_res_show').html(res); } );
+					
+				} ) ;
+				
+				$('#add_com').click( function() {
+					var com_info = $('#com_info').val();
+					var com_addr = $('#com_addr').val();
+					
+					$('#add_com_res_show').html( '' );
+					
+					if( com_info=='' || com_addr=='' ) {
+						$('#add_com_res_show').html( '请补充完整信息' );
+						return false
+					}
+					
+					var url = '/add_com/' + encodeURI(com_info) + '/' + encodeURI(com_addr);
+					$.get( url, function( res ) {  $('#add_com_res_show').html(res); } );
+				
+				} );
+				
+			} )
+		/*
+			$( function() {
+				$('.goods_images').click( function(e) {
+					var t = e.target;
+					
+					$('#'+t.id).addClass('focus img_hover').delay(200).queue( function() {
+						var this_j = $(this);
+						this_j.removeClass( 'focus' ).removeClass( 'img_hover' ).dequeue();
+						$('#s_goods').val( this_j.attr('goods') );
+					} );
+		
+				} );
+				
+				$.post( '../get/order', function(data) {
+					if( data!='' ) {
+						data = $.parseJSON( data );
+						$('#s_goods').val( data['goods_name'] );
+						$('#in_addr').val( data['address'] ).attr('readonly','readonly');
+						$('#in_user').val( data['name'] ).attr('readonly','readonly');
+						$('#in_tel').val( data['phone'] ).attr('readonly','readonly');
+						$('#in_message').val( data['message'] ).attr('readonly','readonly');
+					}
+				} );
+					
+				$('#s_goods').val( $('#image_1').attr('goods') );
+				$("#alert_s").hide();
+				$("#alert_w").hide();
+				
+				$('#t_info').submit( function( e ) {
+					e.preventDefault();
+					$('#myModal').modal( 'show' );
+				} );
+				
+				$('#order_submit').click( function() {
+					$.post( '../upload/order', $('#t_info').serialize(), function(data) {
+						if( data=='ok' )
+							$("#alert_s").fadeIn(500).delay(1000).fadeOut(300);
+						else
+							$("#alert_w").fadeIn(500).delay(1000).fadeOut(300);
+					} );
+					
+					$('#myModal').modal( 'hide' );
+				} );
+				
+			} );
+			*/
+		</script>
+	</body>
+	
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="../static/html-att/bootstrap/dist/css/bootstrap.min.css">
+		<link rel="stylesheet" href="../static/html-att/css/font-awesome.min.css">
+		
+		<title>Hello, world!</title>
+		
+		<style>
+			.goods_images img {
+				padding: 0;
+				border-width: 0;
+			}
+			
+			#t_info {
+				padding: 10px;
+			}
+						
+			.focus {
+				box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+				-webkit-box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+				-moz-box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+			}
+			
+			.img_hover{
+				transform: scale(1.04);
+				z-index: 3;
+			}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		<div class="container-fluid">
+			<div class="col-lg-6 d-block mx-auto bg-secondary">
+				<div class="row">
+					<div class="d-block mx-auto"><h1>Hello, world!</h1></div>
+				</div>
+				
+				<div class="row goods_images">
+					<img id="image_1" class="d-block mx-auto bg-success col-lg-4" height="340" goods="超级礼盒一" />
+					<img id="image_2" class="d-block mx-auto bg-dark col-lg-4" height="340" goods="超级礼盒二" />
+					<img id="image_3" class="d-block mx-auto bg-warning col-lg-4" height="340" goods="超级礼盒三" />
+				</div>
+				
+				<div class="text-center">
+					<form id="t_info" class="d-block mx-auto col-lg-8" method="post">
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="icon-gift" aria-hidden="true"></i></span>
+							</div>
+							<input id="s_goods" type="text" readonly class="form-control" name="goods_name">
+						</div>
+						
+						<br/>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="icon-map-marker" aria-hidden="true"></i></span>
+							</div>
+							<input id="in_addr" type="text" class="form-control" placeholder="收货地址" required="required" name="address">
+						</div>
+						
+						<br/>
+						<div class="row">
+							<div class="input-group col-lg-6">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="icon-user" aria-hidden="true"></i></span>
+								</div>
+								<input id="in_user" type="text" class="form-control" placeholder="联系人" required="required" name="name">
+							</div>
+
+							<div class="input-group col-lg-6">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="icon-phone" aria-hidden="true"></i></span>
+								</div>	
+								<input id="in_tel" type="tel" class="form-control" placeholder="联系电话" pattern="[0-9+-]+" required="required" name="phone">
+							</div>
+						</div>
+						
+						<br/>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="icon-comment" aria-hidden="true"></i></span>
+							</div>	
+							<input id="in_message" type="text" class="form-control" placeholder="留言" name="message">
+						</div>
+
+						<br/>
+						<button id="submit_btn" type="submit" class="mx-auto btn btn-primary btn-block btn-flat col-lg-9">确 定</button>
+					</form>
+				</div>
+				
+			</div>
+		</div>	
+		
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="myModalLabel">订单确认</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					</div>
+					<div class="modal-body text-center">请仔细确认订单内容</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+						<button id="order_submit" type="button" class="btn btn-primary">提交</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="alert_s" class="position-relative alert alert-success col-lg-3 mx-auto text-center" style="top:-200px;">
+			<strong>成功!</strong>订单提交成功
+		</div>
+		
+		<div id="alert_w" class="position-relative alert alert-warning col-lg-3 mx-auto text-center" style="top:-200px;">
+			<strong>重复提交!</strong>订单已经提交
+		</div>
+		
+		<script src="../static/html-att/js/jquery-3.4.0.min.js"></script>
+		<script src="../static/html-att/js/popper-1.12.9/popper.min.js"></script>
+		<script src="../static/html-att/bootstrap/dist/js/bootstrap.min.js"></script>
+		
+		<script>
+			$( function() {
+				$('.goods_images').click( function(e) {
+					var t = e.target;
+					
+					$('#'+t.id).addClass('focus img_hover').delay(200).queue( function() {
+						var this_j = $(this);
+						this_j.removeClass( 'focus' ).removeClass( 'img_hover' ).dequeue();
+						$('#s_goods').val( this_j.attr('goods') );
+					} );
+		
+				} );
+				
+				$.post( '../get/order', function(data) {
+					if( data!='' ) {
+						data = $.parseJSON( data );
+						$('#s_goods').val( data['goods_name'] );
+						$('#in_addr').val( data['address'] ).attr('readonly','readonly');
+						$('#in_user').val( data['name'] ).attr('readonly','readonly');
+						$('#in_tel').val( data['phone'] ).attr('readonly','readonly');
+						$('#in_message').val( data['message'] ).attr('readonly','readonly');
+					}
+				} );
+					
+				$('#s_goods').val( $('#image_1').attr('goods') );
+				$("#alert_s").hide();
+				$("#alert_w").hide();
+				
+				$('#t_info').submit( function( e ) {
+					e.preventDefault();
+					$('#myModal').modal( 'show' );
+				} );
+				
+				$('#order_submit').click( function() {
+					$.post( '../upload/order', $('#t_info').serialize(), function(data) {
+						if( data=='ok' )
+							$("#alert_s").fadeIn(500).delay(1000).fadeOut(300);
+						else
+							$("#alert_w").fadeIn(500).delay(1000).fadeOut(300);
+					} );
+					
+					$('#myModal').modal( 'hide' );
+				} );
+				
+			} );
+		</script>
+	</body>
+	
+</html>
