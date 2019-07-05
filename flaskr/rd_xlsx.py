@@ -340,7 +340,6 @@ def get_goods_names_fruits( sql_conn, sh_data ):
 	return result, fruits_ary, failed, array_cut, array_fruits
 
 			
-
 # 从形如 名称（原料1+原料2） 中提取 名称 和 原料
 # 返回 ( name, m_list )
 #	m_list - [ 原料1, 原料2,... ]
@@ -351,6 +350,7 @@ def get_name_and_materials( goods_name ):
 	name, m_list = '', []
 	if m and len(m.groups())>=2:
 		name = m.group( 1 )
+		name = name.replace( '＋', '+' )
 		m_list = m.group( 2 ).split( '+' )
 		
 	return (name, m_list)

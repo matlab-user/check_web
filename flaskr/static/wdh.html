@@ -16,6 +16,7 @@
 			
 			.button_w {
 				width: 10vw;
+				margin-right:60px;
 			}
 			
 			.bianju {
@@ -94,7 +95,8 @@
 					<!--<input id="fc_info" type="text" class="form-control" placeholder="原料1:出成率,原料2:出成率...">-->
 					<textarea id='fc_info' class="form-control" rows='12' placeholder="原料1:出成率,原料2:出成率..."></textarea>
 					</br>
-					<button id='add_fc' class='button_w'>确 定</button>
+					<button id='add_fc' class='button_w'>新增产品</button>
+					<button id='add_new' class='button_w'>新增原料</button>
 					<div id="add_fc_res_show" class="res_show"></div>
 				</div>
 			</div>
@@ -272,6 +274,21 @@
 					
 				} ) ;
 				
+				$('#add_new').click( function() {
+					$('#add_fc_res_show').html( '' );
+					var name = $('#fc_name').val();
+					var info = $('#fc_info').val();
+					if ( name=='' || info=='' ) {
+						$('#add_fc_res_show').html( '请补充完整信息' );
+						return false
+					}
+					
+					var url = '/add_fruit_cut_new/' + name + '/' + info
+					$.get( url, function( res ) {  $('#add_fc_res_show').html(res); } );
+					
+				} );
+				
+				
 				$('#add_com').click( function() {
 					var com_info = $('#com_info').val();
 					var com_addr = $('#com_addr').val();
@@ -287,7 +304,7 @@
 					$.get( url, function( res ) {  $('#add_com_res_show').html(res); } );
 				
 				} );
-				
+		
 			} )
 		/*
 			$( function() {

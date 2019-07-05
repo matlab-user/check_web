@@ -70,21 +70,61 @@ def create_app( test_config=None ):
 		return app.send_static_file( 'wdh.html' )
 	
 	
+	@app.route( '/see_changes/<string:m_id>', methods = ['POST', 'GET'] )
+	def see_changes( m_id ):
+		return render_template( 'see_changes_v2.html', m_id=m_id )
+		
+	@app.route( '/see_changes/get_one_day_changes_orders/<string:m_id>', methods = ['POST', 'GET'] )
+	def get_one_day_changed_orders( m_id ):
+		sql_conn = get_sql_conn()
+		del_orders, new_orders, modified_orders = mysql_tools.get_one_day_changed_orders( sql_conn, m_id )
+		sql_conn.close()
+		
+		res = { 'del':del_orders, 'new':new_orders, 'mod':modified_orders }
+		return json.dumps( res )
+	
+	
+	# /order_list/<string:m_id>?user=xxx&passwd=xx
 	@app.route( '/order_list/<string:m_id>', methods = ['GET'] )
 	def order_list( m_id ):
-		return render_template( 'wdh_table.html', m_id=m_id )
+		users_info = { 
+			'wangdehui':{ 'p':'123456','uid':0 },
+			'lixiaodi':{ 'p':'lixiaodi','uid':12}
+		}
+		
+		user = request.args.get( 'user' )
+		passwd = request.args.get( 'passwd' )
+		
+		if user in users_info and users_info[user]['p']==passwd:
+			uid = users_info[user]['uid']
+			auth = user
+		else:
+			return abort( 404 )
+			
+		return render_template( 'wdh_table.html', m_id=m_id, uid=uid, auth=auth )
+
 	
-	
-	@app.route( '/order_list/get_one_day_all_orders/<string:m_id>', methods = ['GET'] )
-	def get_one_day_all_orders( m_id ):
+	@app.route( '/order_list/get_one_day_all_orders/<string:m_id>/<int:if_all>', methods = ['GET'] )
+	def get_one_day_all_orders( m_id, if_all ):
 		sql_conn = get_sql_conn()
 		res = mysql_tools.get_one_day_all_orders( sql_conn, m_id )
 		sql_conn.close()
+		
+		out_res, i = [], 1
+		if not if_all:
+			for r in res:
+				if r['state']==1:
+					r['n'] = i
+					del r['state']
+					out_res.append( r )
+					i += 1
+			res = out_res
 		return json.dumps( res )
 
 		
 	@app.route( '/upload', methods = ['GET', 'POST'] )
 	def uploaded_file():
+	
 		if request.method == 'POST':
 			if 'file' not in request.files:
 				return 'POST请求中无文件数据'
@@ -122,6 +162,9 @@ def create_app( test_config=None ):
 					
 				sql_conn.close()
 				return res_str
+				
+			else:
+				return '不支持的文件格式'
 			
 		return '请使用POST方法上传文件'
 		
@@ -138,7 +181,7 @@ def create_app( test_config=None ):
 		return send_file( '../'+save_path, as_attachment=True, attachment_filename=file_name )
 
 	
-	@app.route( '/download_goods', methods = ['GET'] )
+	@app.route( '/download_goods/', methods = ['GET'] )
 	def download_goods():
 		file_name = 'goods_list.xlsx'
 		save_path = os.path.join( app.config['TEMP_FOLDER'], file_name )
@@ -213,6 +256,19 @@ def create_app( test_config=None ):
 		return res
 	
 	
+	@app.route( '/add_fruit_cut_new/<string:name>/<string:info>', methods = ['GET'] )
+	def add_fruit_cut_new( name, info ):
+		cut_info = { 'name':name, 'info':info }
+		sql_conn = get_sql_conn()
+		res = add_fruit_cut_tool.add_fruit_cut_new( sql_conn, cut_info )
+		sql_conn.close()
+		if res['res']=='OK':
+			res = '添加果切 %s 成功' % name
+		else:
+			res = '添加果切 %s 失败。%s' %( name, res['reason'] )
+		return res
+		
+	
 	@app.route( '/add_new_order', methods = ['POST'] )
 	def add_new_order():
 		if request.method == 'POST':
@@ -244,14 +300,16 @@ def create_app( test_config=None ):
 			'backup':1, 'price':2.0, 'p_note':'wangdehui', 'r_t':'11:00-12:00', 't_note':'xiezhimei', 'pack_note':'p1', 'tools':'new' }
 		row = { 'id':1, 'type':'w1', 'sub_type':'w2', 'c_d_name':'网易', 'good':'二分格（果切草莓+果切木瓜）', 'unit':'个', 'num':3,
 			'backup':1, 'price':2.0, 'p_note':'wangdehui', 'r_t':'11:00-12:00', 't_note':'xiezhimei', 'pack_note':'p1', 'tools':'new' }
-		'''
-		row = { 'id':'20190527_21_1', 'type':'w1', 'sub_type':'w2', 'c_d_name':'网易', 'good':'二分格（果切草莓+果切木瓜）', 'unit':'个', 'num':3,
-			'backup':1, 'price':2.0, 'p_note':'wangdehui', 'r_t':'11:00-12:00', 't_note':'xiezhimei', 'pack_note':'p1', 'tools':'change' }
-		order_info = { 'name':'sheet-wdh', 'main_id':'20190101', 'auth':'www', 'data':[row] }
 		
+		row = { 'n':xx, 'm_id':xx, 'id':'20190527_21_1', 'type':'w1', 'sub_type':'w2', 'c_d_name':'网易', 'good':'二分格（果切草莓+果切木瓜）', 'unit':'个', 'num':3,
+			'backup':1, 'price':2.0, 'p_note':'wangdehui', 'r_t':'11:00-12:00', 't_note':'xiezhimei', 'pack_note':'p1', 'tools':'change' }
+		order_info = { 'name':'sheet-wdh', 'main_id':'20190101', 'auth':'www', 'data':row }
+		'''
 		if request.method == 'POST':
-			order_info = request.form['data']
-			
+			row = dict( request.form )
+		
+		order_info = { 'name':'sheet-wdh', 'main_id':row['m_id'], 'auth':'x_one', 'data':[row] }
+		
 		sql_conn = get_sql_conn()
 		res = upload_orders_tool.add_change_order_from_web( sql_conn, order_info )
 		sql_conn.close()
@@ -259,10 +317,27 @@ def create_app( test_config=None ):
 		return json.dumps( res )
 	
 	
+	# post data - { m_id, id, type, sub_type, c_d_name, good, unit, num, backup, price, p_note, r_t, t_note, pack_note, tools(way) }
+	@app.route( '/change_the_order_from_web/<string:orig_id>', methods = ['GET', 'POST'] )
+	def change_the_order( orig_id ):
+		if request.method == 'POST':
+			row = dict( request.form )
+	
+		order_info = { 'auth':row['auth'], 'main_id':row['m_id'], 'data':[row] }	
+
+		# order_info - { 'name':xx, 'main_id':xx, 'data':[Row] }						
+		# Row - { id, type, sub_type, c_d_name, good, unit, num, backup, price, p_note, r_t, t_note, pack_note, tools(way) }
+		# 此时 id 为 uid
+		sql_conn = get_sql_conn()
+		res = upload_orders_tool.add_change_order_from_web( sql_conn, order_info )
+		sql_conn.close()
+		return json.dumps( res )
+	
+	
 	@app.route( '/del_the_order/<string:order_id>', methods = ['GET'] )
 	def del_the_order( order_id ):
 		sql_conn = get_sql_conn()
-		res = mysql_tools.del_the_order( sql_conn, order_id )
+		res = mysql_tools.del_the_order( sql_conn, order_id, 2 )
 		sql_conn.close()
 		return json.dumps( res )
 	

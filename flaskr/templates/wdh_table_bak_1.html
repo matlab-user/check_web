@@ -5,12 +5,21 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<title>Hello, Bootstrap Table!</title>
-		<!---->
+
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
 		<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.2/dist/bootstrap-table.min.css">
 		
 		<style>
+			.wdh {
+				padding: 20px;
+			}
+			
+			.wdh_div {
+				position: absolute;
+				margin-top: 10px;
+			}
+			
 			#temp_input {
 				width: 20em;
 				position: absolute;
@@ -25,42 +34,70 @@
 			button {
 				margin-bottom: 10px;
 			}
+			
 		</style>
 	</head>
 	
 	<body>
+	
 		<h1><i class="fa fa-chess"></i></h1>
-		<div class='container-fluid'>
-			<div id="toolbar">
-				<div class='row'>
-					<button id="button" class="btn btn-secondary offset-lg-11">insertRow</button>
+	
+		<div class='wdh'>
+		
+			<div class='container-fluid wdh_div'>
+				<div id="toolbar">
+					<div class='row'>
+						<button id="button" class="btn btn-secondary">insertRow</button>
+					</div>
 				</div>
 			</div>
-		</div>
 		
-		<table id='table' data-height='460' data-unique-id='id' >
-			<thead>
-				<tr>
-					<th data-field="id">ID</th>
-					<th data-field="name">Item Name</th>
-					<th data-field="price" >Item Price</th>
-					<th data-field='tools' data-formatter='toolsFormatter' data-events='operateEvents'>操作</th>
-				</tr>
-			</thead>		
-		</table>
+			<table 	id='table'
+					data-toggle="table"
+					data-height='1200' 
+					data-search="true"
+					data-show-refresh="true"
+					data-show-print="false"
+					data-search-on-enter-key="true"
+					data-url='get_one_day_all_orders/{{m_id}}'>
+				<thead>
+					<tr>
+						<th data-field="id">ID</th>
+						<th data-field="type">类型</th>
+						<th data-field="sub_type">子类型</th>
+						<th data-field="c_d_name">公司名称</th>
+						<th data-field="good">产品</th>
+						<th data-field="unit">单位</th>
+						<th data-field="num">数量</th>
+						<th data-field="backup">备份数量</th>
+						<th data-field="price" >单价</th>
+						<th data-field="p_note">生产备注</th>
+						<th data-field="r_t">要求送达时间</th>
+						<th data-field="t_note">运输备注</th>
+						<th data-field="pack_note">包装编号</th>
+						<th data-field='tools' data-formatter='toolsFormatter' data-events='operateEvents'>操作</th>
+					</tr>
+				</thead>
+			
+			</table>
+		</div>
 		
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 		<script src="https://unpkg.com/bootstrap-table@1.15.2/dist/bootstrap-table.min.js"></script>
+		<script src="https://unpkg.com/bootstrap-table@1.15.2/dist/extensions/print/bootstrap-table-print.min.js"></script>
 		
 		<script>
 			function toolsFormatter( value, row ) {
 				var ele_str = '';
-				if ( value=='new' )
-					ele_str = '<a class="save_new" href="javascript:void(0)" title="Save_new"><i class="fa fa-save"></a>';
+				if ( value=='new' ) {
+					ele_str = '<a class="save_new" href="javascript:void(0)" title="Save_new"><i class="fa fa-save"></i></a>';
+					ele_str += '<a class="remove" href="javascript:void(0)" title="Remove"><i class="fa fa-trash"></i></a>';
+					console.log( ele_str );
+				}
 				else if ( value=='change' )
-					ele_str = '<a class="save_change" href="javascript:void(0)" title="Save_change"><i class="fa fa-file-import"></a>';
+					ele_str = '<a class="save_change" href="javascript:void(0)" title="Save_change"><i class="fa fa-file-import"></i></a>';
 				else
 					ele_str = '<a class="remove" href="javascript:void(0)" title="Remove"><i class="fa fa-trash"></i></a>';
 				return ele_str;
@@ -69,45 +106,11 @@
 		
 		<script>
 		
-			var $table = $( '#table' );
+			var $table = $( '#table' )
 			var $button = $( '#button' );
 			
 			$( function() {
-				var data = [
-					{
-						'id': 0,
-						'name': 'Item 0',
-						'price': '$0'
-					},
-					{
-						'id': 1,
-						'name': 'Item 1',
-						'price': '$1'
-					},
-					{
-						'id': 2,
-						'name': 'Item 2',
-						'price': '$2'
-					},
-					{
-						'id': 3,
-						'name': 'Item 3',
-						'price': '$3'
-					},
-					{
-						'id': 4,
-						'name': 'Item 4',
-						'price': '$4'
-					},
-					{
-						'id': 5,
-						'name': 'Item 5',
-						'price': '$5'
-					}
-				];
-				
-				$table.bootstrapTable( {data:data} );
-				
+			
 				var tinput = $( '<input id="temp_input" type="text" class="form-control"/>' )
 				$('body').append( tinput );
 				$('#temp_input').hide().keyup( function( e ) {
@@ -183,9 +186,9 @@
 					$table.bootstrapTable( 'insertRow', {
 						index: 0,
 						row: {
-							id: 12,
-							name: 'Item 0',
-							price: '$6',
+							id: 16,
+							name: '',
+							price: '',
 							tools:	'new'
 						}
 					} )
@@ -193,15 +196,13 @@
 				
 			} )
 			
+			
 			window.operateEvents = {
 				'click .remove': function ( e, value, row, index ) {
-					console.log( row );
-					/*
 					$table.bootstrapTable( 'remove', {
 						field: 'id',
 						values: [row.id]
 					} )
-					*/
 				},
 				
 				'click .save_new': function ( e, value, row, index ) {

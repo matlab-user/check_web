@@ -64,7 +64,7 @@ def insert_orders( sql_conn, order_info ):
 	return count
 
 #-----------------------------------------------------------------------------------------------------------------------------
-# order_info['t'], order_info['auth'], order_info['m_id']
+# order_info- { t, auth, m_id }
 def insert_one_order( sql_conn, one_order, order_info ):
 	sql_str = 'INSERT INTO ord_orders_detail ('
 	keys, v_str = [], ''
@@ -87,28 +87,29 @@ def insert_one_order( sql_conn, one_order, order_info ):
 	return count
 
 
-# order_info['t'], order_info['auth'], order_info['m_id'], order['orders']
+# order_info['t'], order_info['auth'], order_info['m_id'], order_info['order']
 def change_the_order( sql_conn, orig_id, order_info ):
-	insert_one_order( sql_conn, order_info['orders'][0], order_info )
-	del_the_order( sql_conn, orig_id )
-	return 1
+	insert_one_order( sql_conn, order_info['order'], order_info )
+	del_the_order( sql_conn, orig_id, 3 )
+	return {'res':'OK'}
 	
 
 # state=1 正常; =2 删除; =3 此订单被修改
-def del_the_order( sql_conn, order_id ):
-	sql_str = 'UPDATE ord_orders_detail SET state=3 WHERE id=%s'
+def del_the_order( sql_conn, order_id, new_state ):
+	sql_str = 'UPDATE ord_orders_detail SET state=%s WHERE id=%s'
 	cur = sql_conn.cursor()
-	cur.execute( sql_str, [order_id,] )
+	cur.execute( sql_str, [new_state, order_id] )
 	sql_conn.commit()
 	return {'res':'OK'}
 
 
 # 获取某天，删除、新增、修改后的订单
-def get_one_day_changed_orders( sql_conn, mid ):
+def get_one_day_changed_orders( sql_conn, m_id ):
 	orders = get_one_day_all_orders( sql_conn, m_id )
 	del_orders, new_orders, modified_orders = [], [], []
 	
 	for o in orders:
+		del o['n']
 		if o['state']==2:
 			del_orders.append( o )
 		elif o['state']==1:
@@ -146,7 +147,7 @@ def get_one_order_with_id( sql_conn, order_id, fields='' ):
 
 # res - [ {'id':x, 'type':x...}, {}, ]
 def get_one_day_all_orders( sql_conn, m_id ):
-	fs = ['id', 'type', 'sub_type', 'c_d_name', 'good', 'unit', 'num', 'backup', 'price', 'p_note', 'r_t', 't_note', 'pack_note', 'o_note']
+	fs = ['id', 'type', 'sub_type', 'c_d_name', 'good', 'unit', 'num', 'backup', 'price', 'p_note', 'r_t', 't_note', 'pack_note', 'o_note', 'state']
 	sql_cmd = 'SELECT %s FROM ord_orders_detail WHERE m_id=%s' %( ','.join(fs), m_id )
 	
 	cur = sql_conn.cursor()
@@ -155,8 +156,8 @@ def get_one_day_all_orders( sql_conn, m_id ):
 	cur.close()
 	
 	res = []
-	for d in data:
-		mid = {}
+	for i, d in enumerate( data ):
+		mid = { 'n': i }
 		for i, k in enumerate( fs ):
 			if k=='unit':
 				unit_dict = json.loads( d[i] )
@@ -693,7 +694,10 @@ def match_contacts( sql_conn, c_d_names ):
 			
 		mid = {}
 		c_d_name, mid['n'], mid['phone'] = data
-		mid['phone'] = str( int(float(mid['phone'])) )
+		try:
+			mid['phone'] = str( int(float(mid['phone'])) )
+		except:
+			pass
 		res[c_d_name] = mid
 		get_names.append( c_d_name )
 
@@ -810,8 +814,8 @@ def get_day_orders_with_m_id( sql_conn, m_id ):
 		mid['c_d_name'], mid['company'], mid['addr'], mid['price'], mid['num'] = d_r[5:10]
 		mid['backup'], mid['p_note'], mid['t_note'], mid['d_t'], mid['r_t'] = d_r[10:15] 
 		mid['good_type'], mid['unit'], mid['contact'], mid['driver'], mid['d_t'] = d_r[15:20]
-		mid['actual_recv'], mid['a_t'], mid['sub_type'], mid['pack_note'], mid['standar'] = d_r[20:25]
-		mid['goods_info'] = d_r[25]
+		mid['actual_recv'], mid['a_t'], mid['sub_type'], mid['pack_note'] = d_r[20:24]
+		mid['goods_info'] = d_r[24]
 		res.append( mid )
 	cur.close()
 	

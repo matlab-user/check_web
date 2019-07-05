@@ -14,50 +14,115 @@
 			.wdh {
 				padding: 20px;
 			}
+			
+			.wdh_div {
+				position: absolute;
+				margin-top: 10px;
+			}
+			
+			#temp_input {
+				width: 20em;
+				position: absolute;
+				top: 20px;
+				left: 30px;
+			}
+			
+			h1 {
+				font-size: 6vw;
+			}
+			
+			button {
+				margin-bottom: 10px;
+			}
+			
 		</style>
 	</head>
 	
 	<body>
 		<div class='wdh'>
+			<h1><i class="fa fa-chess"></i></h1>		
+			<div class='container-fluid wdh_div'>
+				<div id="toolbar">
+					<div class='row'>
+						<button id="button" class="btn btn-secondary">insertRow</button>
+					</div>
+				</div>
+			</div>
+		
 			<table 	id='table'
 					data-toggle="table"
 					data-height='1200' 
 					data-search="true"
 					data-show-refresh="true"
 					data-show-print="false"
+					data-unique-id="n"
 					data-search-on-enter-key="true"
-					data-url='get_one_day_all_orders/{{m_id}}'>
+					data-url='get_one_day_all_orders/{{m_id}}/0'>
 				<thead>
 					<tr>
+						<th data-field="n" data-sortable="true">i</th>
 						<th data-field="id">ID</th>
 						<th data-field="type">类型</th>
 						<th data-field="sub_type">子类型</th>
-						<th data-field="c_d_name">公司名称</th>
+						<th data-field="c_d_name">公司</th>
 						<th data-field="good">产品</th>
 						<th data-field="unit">单位</th>
 						<th data-field="num">数量</th>
-						<th data-field="backup">备份数量</th>
+						<th data-field="backup">备份数</th>
 						<th data-field="price" >单价</th>
 						<th data-field="p_note">生产备注</th>
-						<th data-field="r_t">要求送达时间</th>
+						<th data-field="r_t">送达</th>
 						<th data-field="t_note">运输备注</th>
-						<th data-field="pack_note">包装编号</th>
+						<th data-field="pack_note">包装号</th>
 						<th data-field='tools' data-formatter='toolsFormatter' data-events='operateEvents'>操作</th>
 					</tr>
 				</thead>
-			
 			</table>
+			
+			<input id="temp_input" type="text" class="form-control"/>
+			
 		</div>
 		
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					</div>
+					<div class="modal-body">确认删除该订单?</div>
+						<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" id='del_order' class="btn btn-primary">删除</button>
+					</div>
+					
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div>
+
+
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 		<script src="https://unpkg.com/bootstrap-table@1.15.2/dist/bootstrap-table.min.js"></script>
 		<script src="https://unpkg.com/bootstrap-table@1.15.2/dist/extensions/print/bootstrap-table-print.min.js"></script>
-		
+			
 		<script>
+			var M_ID = "{{m_id}}";
+			var UID = {{uid}};
+			var AUTH = "{{auth}}"
+			
 			function toolsFormatter( value, row ) {
-				var ele_str = '<a class="remove" href="javascript:void(0)" title="Remove"><i class="fa fa-trash"></i></a>';
+				var ele_str = '';
+				if ( value=='new' ) {
+					ele_str = '<a class="save_new" href="javascript:void(0)" title="Save_new"><i class="fa fa-save"></i></a>&nbsp;';
+					ele_str += '<a class="remove" href="javascript:void(0)" title="Remove" data-toggle="modal" data-target="#myModal"><i class="fa fa-trash"></i></a>';
+				}
+				else if ( value=='change' )
+					ele_str = '<a class="save_change" href="javascript:void(0)" title="Save_change"><i class="fa fa-file-import"></i></a>';
+				else if ( value=='save_ok' )
+					ele_str = '<a class="remove" href="javascript:void(0)" title="Remove data-toggle="modal" data-target="#myModal""><i class="fa fa-trash"></i></a>';
+				else
+					ele_str += '<a class="remove" href="javascript:void(0)" title="Remove" data-toggle="modal" data-target="#myModal"><i class="fa fa-trash"></i></a>';
 				return ele_str;
 			}
 		</script>
@@ -65,58 +130,147 @@
 		<script>
 		
 			var $table = $( '#table' )
+			var $button = $( '#button' );
+			
+			$( function() {		
+				$('#temp_input').hide().keyup( function( e ) {
+					if ( e.which==13 ) {
+						var temp_input = $( '#temp_input' );
+						if ( temp_input.length==0 || temp_input.is(':hidden') )
+							return;
 
-			$( function() {
-				/*
-				var data = [
-					{
-						'id': 0,
-						'name': 'Item 0',
-						'price': '$0'
-					},
-					{
-						'id': 1,
-						'name': 'Item 1',
-						'price': '$1'
-					},
-					{
-						'id': 2,
-						'name': 'Item 2',
-						'price': '$2'
-					},
-					{
-						'id': 3,
-						'name': 'Item 3',
-						'price': '$3'
-					},
-					{
-						'id': 4,
-						'name': 'Item 4',
-						'price': '$4'
-					},
-					{
-						'id': 5,
-						'name': 'Item 5',
-						'price': '$5'
+						var new_v = temp_input.val();
+						var old_v = temp_input.attr( 'wdh_v' );
+						var wdh_id = parseInt( temp_input.attr('wdh_id') );
+						var wdh_f = temp_input.attr( 'wdh_f' );
+						var wdh_tools = temp_input.attr( 'wdh_tools' );
+						
+						temp_input.attr( {wdh_v:'', wdh_id:-1, wdh_f:'', placeholder:'', wdh_tools:'' }  );
+						temp_input.val( '' );
+						temp_input.hide();
+						
+						if ( new_v=='' )
+							the_v = old_v;
+						else {
+							the_v = new_v;
+							if ( wdh_tools!='new' )
+								$table.bootstrapTable( 'updateCellByUniqueId', {id:wdh_id, field:'tools', value:'change'} );	
+						}
+						
+						$table.bootstrapTable( 'updateCellByUniqueId', {id:wdh_id, field:wdh_f, value:the_v} );
 					}
-				];
-				
-				$table.bootstrapTable( {data:data} );
-				
-				$table.bootstrapTable( 'refreshOptions', {
-					url: 'get_one_day_all_orders/20190528'
 				} );
-				*/
+				
+				
+				$table.on( 'dbl-click-cell.bs.table', function ( e, field, value, row, $el) {
+					forbid = [ 'n', 'id', 'tools' ];
+					if ( forbid.indexOf(field)>=0 )
+						return;
+						
+					var tinput = $( '#temp_input' );
+					if ( temp_input.length==0 )
+						return;
+					
+					if ( row.tools===undefined )
+						tinput.attr( {wdh_v:value, wdh_id:row.n, wdh_f:field, placeholder:value, wdh_tools:'None' } )
+					else					
+						tinput.attr( {wdh_v:value, wdh_id:row.n, wdh_f:field, placeholder:value, wdh_tools:row.tools } );
+						
+					var pos = $el.offset();
+					tinput.css( {'top':pos.top-10, 'left':pos.left} );
+					tinput.show();
+					
+				} )
+				.on( 'click-row.bs.table', function ( e, field, value, row, $el) {
+					var temp_input = $( '#temp_input' );
+					if ( temp_input.length==0 || temp_input.is(':hidden') )
+						return;
+
+					var new_v = temp_input.val();
+					var old_v = temp_input.attr( 'wdh_v' );
+					var wdh_id = parseInt( temp_input.attr('wdh_id') );
+					var wdh_f = temp_input.attr( 'wdh_f' );
+					var wdh_tools = temp_input.attr( 'wdh_tools' );
+					
+					temp_input.attr( {wdh_v:'', wdh_id:-1, wdh_f:'', placeholder:'', wdh_tools:'' }  );
+					temp_input.val( '' );
+					temp_input.hide();
+					
+					if ( new_v=='' )
+						the_v = old_v;
+					else {
+						the_v = new_v;
+						if ( wdh_tools!='new' )
+							$table.bootstrapTable( 'updateCellByUniqueId', {id:wdh_id, field:'tools', value:'change'} );
+					}
+					
+					$table.bootstrapTable( 'updateCellByUniqueId', {id:wdh_id, field:wdh_f, value:the_v} );
+					
+				} );
+				
+				
+				$button.click( function () {
+					$table.bootstrapTable( 'insertRow', {
+						index: 0,
+						row: { id:String(UID), tools:'new', n:0 }
+					} )
+				} );
+				
+				$('#del_order').click( function () {
+					var row_id = $( this ).attr( 'row_id' );
+					var tools = $( this ).attr( 'tools' );
+					
+					if ( tools!='new' ) {
+						var url = '/del_the_order/' + row_id;
+						$.get( url, function (res) {
+							var res = $.parseJSON( res );
+							if ( res.res=='OK' ) {
+								$( '#myModal' ).modal( 'hide' );
+								$table.bootstrapTable( 'remove', { field: 'id', values: [row_id] } );
+							}
+						} );
+					}
+					else {
+						$table.bootstrapTable( 'remove', { field: 'id', values: [row_id] } );
+						$( '#myModal' ).modal( 'hide' );
+					}
+				} );
 				
 			} )
 			
 			window.operateEvents = {
 				'click .remove': function ( e, value, row, index ) {
-					$table.bootstrapTable( 'remove', {
-						field: 'id',
-						values: [row.id]
-					} )
+					$('#del_order').attr( {'row_id':row.id, 'tools':row.tools} );
+				},
+				
+				'click .save_new': function ( e, value, row, index ) {	
+					row.m_id = M_ID;
+					row.auth = AUTH;
+					
+					var url = '/add_new_order_from_web';
+					$.post( url, row, function( res ) {
+						var res = $.parseJSON( res );
+						if ( res.res=='OK' ) {
+							$table.bootstrapTable( 'updateCellByUniqueId', {id:row.n, field:'tools', value:'save_ok'} );
+						}
+					} );
+				},
+				
+				'click .save_change': function ( e, value, row, index ) {
+					var url = '/change_the_order_from_web/' + row.id;
+					
+					row.m_id = M_ID;
+					row.auth = AUTH;
+					$.post( url, row, function( res ) {
+						var res = $.parseJSON( res );
+						if ( res.res=='OK' ) {
+							$table.bootstrapTable( 'updateCellByUniqueId', {id:row.n, field:'tools', value:'save_ok'} );
+							$table.bootstrapTable( 'refresh' );
+						}
+					} );
+					
 				}
+				
 			}
 		
 		</script>

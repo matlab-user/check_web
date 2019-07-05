@@ -15,7 +15,7 @@ def add_fruit_cut( sql_conn, cut_info ):
 	
 	mid, p = {}, re.compile( r'[，,]' )
 	cells = p.split( cut_info['info'] )
-	p = re.compile( r'(\S+)[: ：](\d+(\.\d+)?)' )
+	p = re.compile( r'(\S+)[:：][ ]*(\d+(\.\d+)?)' )
 	for c in cells:
 		m = p.match( c )
 		if m:
@@ -38,6 +38,40 @@ def add_fruit_cut( sql_conn, cut_info ):
 	
 	return { 'res':'OK' }
 
+
+def add_fruit_cut_new( sql_conn, cut_info ):
+	mid, p = {}, re.compile( r'[，,]' )
+	cells = p.split( cut_info['info'] )
+	p = re.compile( r'(\S+)[:：][ ]*(\d+(\.\d+)?)' )
+	for c in cells:
+		m = p.match( c )
+		if m:
+			mid[ m.group(1) ] = m.group(2)
+		else:
+			return { 'res':'NO', 'reason':'%s 格式错误' %c }
+	cut_info['info'] = mid
+	
+	cur = sql_conn.cursor()
+	sql_str = 'SELECT info FROM ord_goods WHERE name=%s'
+	cur.execute( sql_str, ( cut_info['name'], ) )
+	res = cur.fetchone()
+	if res is not None:
+		info = json.loads( res[0] )
+	else:
+		return { 'res':'NO', 'reason':'%s 不存在' %cut_info['name'] }
+	
+	for k, v in cut_info['info'].items():
+		info[k] = v
+
+	info = json.dumps( info )
+	
+	sql_str = 'UPDATE ord_goods SET info=%s WHERE name=%s'
+	cur.execute( sql_str, (info, cut_info['name']) )
+	sql_conn.commit()
+	cur.close()
+	
+	return { 'res':'OK' }
+	
 
 if __name__=='__main__':
 

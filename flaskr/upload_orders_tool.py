@@ -14,7 +14,7 @@ import json, copy
 # 	sheet1_data = { 'name':xx, 'main_id':xx, 'data':[sheet1_Rows,...] }
 # 如果解析失败，返回 ( {'res':'NO','reason':"xxxxx"}, [] )
 def read_orders( sh ):
-	uid, auth = sh.Row_values( 0 )[1:3]
+	uid, auth = sh.row_values( 0 )[1:3]
 	
 	try:
 		uid = '%d' % uid
@@ -315,7 +315,7 @@ def read_orders_date( file_name ):
 	t_list = []
 	book = xlrd.open_workbook( file_name )
 	for sh in book.sheets():
-		mid = sh.Row_values(0)[0]
+		mid = sh.row_values(0)[0]
 		if isinstance( mid, float ):
 			mid = str( int(mid) )		
 		try:
@@ -325,7 +325,6 @@ def read_orders_date( file_name ):
 		except:
 			return []
 	return t_list
-
 	
 	
 # 加单和修改订单功能
@@ -386,8 +385,8 @@ def change_orders( file_name, sql_conn ):
 		return {'res':'NO', 'reason':','.join(err)+'不是标准的订单编号'}
 
 		
-# order_info - { 'name':xx, 'main_id':xx, 'data':[Row] }						
-# Row - { id, type, sub_type, c_d_name, good, unit, num, backup, price, p_note, r_t, t_note, pack_note, tools }
+# order_info - { 'name':sheet_name, 'main_id':xx, 'data':[Row] }						
+# Row - { id, type, sub_type, c_d_name, good, unit, num, backup, price, p_note, r_t, t_note, pack_note, tools(way), auth }
 # 此时 id 为 uid
 def add_change_order_from_web( sql_conn, order_info ):
 	Row = order_info['data'][0]
@@ -439,8 +438,11 @@ def add_change_order_from_web( sql_conn, order_info ):
 	o_info['orders'].append( Row )
 
 	way = Row['tools']
-	del Row['tools']
+	del Row['tools'], Row['n'], Row['auth'], Row['m_id']
 	
+	o_info['order'] = o_info['orders'][0]
+	del o_info['orders']
+		
 	if way=='new':
 		order_ids = mysql_tools.get_day_orders_id_with_m_id( sql_conn, o_info['m_id'] )
 		mid_o_id = '%s_%s_LA' %( o_info['m_id'], o_info['uid'] )
@@ -449,12 +451,12 @@ def add_change_order_from_web( sql_conn, order_info ):
 				new_id = mid_o_id + str(i)
 				order_ids.append( new_id )
 				break
-		o_info['orders'][0]['id'] = new_id		
-		mysql_tools.insert_orders( sql_conn, o_info )
+		o_info['order']['id'] = new_id		
+		mysql_tools.insert_one_order( sql_conn, o_info['order'], o_info )
 		
 	elif way=='change':
 		order_ids = mysql_tools.get_day_orders_id_with_m_id( sql_conn, o_info['m_id'] )
-		orig_id = o_info['orders'][0]['id']
+		orig_id = o_info['order']['id']
 		orig_order = mysql_tools.get_the_order_with_id( sql_conn, orig_id )
 		if orig_order==[]:
 			return { 'res':'NO', 'reason':'%s订单不存在' % orig_id }
@@ -464,11 +466,11 @@ def add_change_order_from_web( sql_conn, order_info ):
 		f_names = {'type':'类型', 'sub_type':'子类型', 'c_d_name':'公司', 'good':'产品', 'unit':'单位', 'num':'数量',
 					'backup':'备份数量', 'p_note':'生产说明', 'r_t':'达到时间', 't_note':'运输要求'}
 		for f in fields:
-			if orig_order[f]!=o_info['orders'][0][f]:
+			if orig_order[f]!=o_info['order'][f]:
 				changed.append( f_names[f] )
 				
-		o_info['orders'][0]['o_note'] = ','.join( changed ) + ' 变更'
-		o_info['orders'][0]['id'] += 'C'
+		o_info['order']['o_note'] = ','.join( changed ) + ' 变更'
+		o_info['order']['id'] += 'C'
 		
 		mysql_tools.change_the_order( sql_conn, orig_id, o_info )
 	
@@ -506,8 +508,6 @@ if __name__=='__main__':
 	
 	Row = { 'id':1, 'type':'w1', 'sub_type':'w2', 'c_d_name':'网易', 'good':'进口柠檬', 'unit':'个', 'num':3,
 			'backup':1, 'price':2.0, 'p_note':'wangdehui', 'r_t':'11:00-12:00', 't_note':'xiezhimei', 'pack_note':'p1', 'tools':'new' }
-	order_info = { 'name':'sheet-wdh', 'main_id':'20190101', 'data':[Row] }
-	add_change_order_from_web( sql_conn, order_info )
 
 
 	
