@@ -47,9 +47,11 @@ def gen_production_plan( order_info, worksheet, cell_format ):
 			if k == 'unit':
 				u = json.loads( od[k] )
 				if 'info' in u and u['info'] != '':
-					s = str('u:') + str(u['u']) + ',' + str('info:') + str(json.loads(u['info'])) + ',' + str('d_unit:') + str(u['d_unit'])
+					#s = str('u:') + str(u['u']) + ',' + str('info:') + str(json.loads(u['info'])) + ',' + str('d_unit:') + str(u['d_unit'])
+					s = u['d_unit']
 				else:
-					s = str('u:') + str(u['u']) + ',' + str('info:') + str('') + ',' + str('d_unit:') + str(u['d_unit'])
+					#s = str('u:') + str(u['u']) + ',' + str('info:') + str('') + ',' + str('d_unit:') + str(u['d_unit'])
+					s = u['d_unit']
 				worksheet.write( row, i, s )
 				data += s
 			else:
@@ -57,6 +59,7 @@ def gen_production_plan( order_info, worksheet, cell_format ):
 				data += str( od[k] )
 		row += 1
 	
+	remark = ''
 	#合并单元格处理
 	num = row+1	#记录合并行的首行索引
 	for ary_ix in ary:
@@ -67,9 +70,11 @@ def gen_production_plan( order_info, worksheet, cell_format ):
 					if k == 'unit':
 						u = json.loads( ay[k] )
 						if 'info' in u and u['info'] != '':
-							s = str('u:') + str(u['u']) + ',' + str('info:') + str(json.loads(u['info'])) + ',' + str('d_unit:') + str(u['d_unit'])
+							#s = str('u:') + str(u['u']) + ',' + str('info:') + str(json.loads(u['info'])) + ',' + str('d_unit:') + str(u['d_unit'])
+							s = u['d_unit']
 						else:
-							s = str('u:') + str(u['u']) + ',' + str('info:') + str('') + ',' + str('d_unit:') + str(u['d_unit'])
+							#s = str('u:') + str(u['u']) + ',' + str('info:') + str('') + ',' + str('d_unit:') + str(u['d_unit'])
+							s = u['d_unit']
 						worksheet.write( row, i, s )
 						data += s
 					else:
